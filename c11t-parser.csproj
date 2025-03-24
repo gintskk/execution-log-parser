@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net9.0</TargetFramework>
+		<RootNamespace>c11t_parser</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<!--<PublishAot>true</PublishAot>-->
+		<!--<InvariantGlobalization>true</InvariantGlobalization>-->
+	</PropertyGroup>
+</Project>
