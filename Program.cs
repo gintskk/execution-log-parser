@@ -1,12 +1,11 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace c11t_parser;
+namespace c11tester_tools;
 
 internal class ExecutionLogParser
 {
     private static void Main(string[] args)
     {
-        var line = Console.ReadLine();
         var input = ReadMultiLineInput();
         var executions = ParseLog(input);
         Console.WriteLine($"Parsed {executions.Count}");
