@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "c11t-parser": {
+      "commandName": "Project",
+      "commandLineArgs": "< stdin.txt"
+    }
+  }
+}
