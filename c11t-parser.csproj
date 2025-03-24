@@ -7,4 +7,9 @@
 		<!--<PublishAot>true</PublishAot>-->
 		<!--<InvariantGlobalization>true</InvariantGlobalization>-->
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Update="stdin.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 </Project>
