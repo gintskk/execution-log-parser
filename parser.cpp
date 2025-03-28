@@ -3,6 +3,9 @@
 #include <string>
 #include <sstream>
 #include <regex>
+#include <unordered_map>
+#include <set>
+#include <algorithm>
 
 using namespace std;
 
@@ -140,10 +143,112 @@ string ReadMultiLineInput()
     return result;
 }
 
+bool hasCycle(const std::unordered_map<int, std::vector<int>>& graph, int node, std::set<int>& visited, std::set<int>& recStack) {
+    if (visited.find(node) == visited.end()) {
+        visited.insert(node);
+        recStack.insert(node);
+
+        // Check if the node exists in the graph
+        auto it = graph.find(node);
+        if (it != graph.end()) {
+            for (int neighbor : it->second) {
+                if (hasCycle(graph, neighbor, visited, recStack) || recStack.count(neighbor)) {
+                    return true;
+                }
+            }
+        }
+
+        recStack.erase(node);
+    }
+    return false;
+}
+
+bool isSequentiallyConsistent(const Execution& exec) {
+    // Filter relevant actions
+    std::vector<TraceEntry> filtered;
+    for (const auto& entry : exec.executionTrace) {
+        if (entry.actionType == "atomic read" || entry.actionType == "atomic write" || entry.actionType == "fence")
+            filtered.push_back(entry);
+    }
+
+    // Build edges
+    std::unordered_map<int, std::vector<int> > graph;
+
+    // 1. Program Order (po)
+    std::unordered_map<int, std::vector<TraceEntry> > threadActions;
+    for (const auto& entry : filtered)
+        threadActions[entry.threadId].push_back(entry);
+
+    for (auto& [tid, actions] : threadActions) {
+        sort(actions.begin(), actions.end(), [](const TraceEntry& a, const TraceEntry& b) { return a.id < b.id; });
+        for (size_t i = 1; i < actions.size(); ++i)
+            graph[actions[i-1].id].push_back(actions[i].id);
+    }
+
+    // 2. Reads-From (rf)
+    std::unordered_map<int, TraceEntry> writes; // id -> write action
+    for (const auto& entry : filtered) {
+        if (entry.actionType == "atomic write")
+            writes[entry.id] = entry;
+    }
+
+    for (const auto& entry : filtered) {
+        if (entry.actionType == "atomic read" && !entry.rf.empty()) {
+            int rfId = std::stoi(entry.rf);
+            if (writes.count(rfId))
+                graph[rfId].push_back(entry.id);
+        }
+    }
+
+    // 3. Modification Order (mo)
+    std::unordered_map<std::string, std::vector<TraceEntry> > locationWrites;
+    for (const auto& entry : filtered) {
+        if (entry.actionType == "atomic write")
+            locationWrites[entry.location].push_back(entry);
+    }
+
+    for (auto& [loc, writes] : locationWrites) {
+        sort(writes.begin(), writes.end(), [](const TraceEntry& a, const TraceEntry& b) { return a.id < b.id; });
+        for (size_t i = 1; i < writes.size(); ++i)
+            graph[writes[i-1].id].push_back(writes[i].id);
+    }
+
+    // 4. From-Reads (fr)
+    for (const auto& readEntry : filtered) {
+        if (readEntry.actionType != "atomic read" || readEntry.rf.empty()) continue;
+        int rfId = std::stoi(readEntry.rf);
+        if (!writes.count(rfId)) continue;
+
+        TraceEntry& writeEntry = writes[rfId];
+        std::string loc = writeEntry.location;
+        auto& moWrites = locationWrites[loc];
+
+        // Find all writes after 'writeEntry' in mo order
+        bool found = false;
+        for (size_t i = 0; i < moWrites.size(); ++i) {
+            if (moWrites[i].id == rfId) {
+                found = true;
+                for (size_t j = i+1; j < moWrites.size(); ++j)
+                    graph[readEntry.id].push_back(moWrites[j].id);
+                break;
+            }
+        }
+    }
+
+    // Check for cycles
+    std::set<int> visited, recStack;
+    for (const auto& [node, _] : graph) {
+        if (hasCycle(graph, node, visited, recStack))
+            return false;
+    }
+    return true;
+}
+
 int main()
 {
     string input = ReadMultiLineInput();
     vector<Execution> executions = ParseLog(input);
+    cout << isSequentiallyConsistent(executions[1])<<endl;
     cout << "Parsed " << executions.size() << endl;
     return 0;
 }
