@@ -1,0 +1,379 @@
+C11Tester
+Copyright (c) 2013 and 2019 Regents of the University of California. All rights reserved.
+Distributed under the GPLv2
+Written by Weiyu Luo, Brian Norris, and Brian Demsky
+
+Program output from execution 1:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 0, r2 = 2
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 1:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0x2                 13  ( 0, 10,  0, 15)
+16   3    atomic write    seq_cst  0000000000404070   0x2                     ( 0, 10,  0, 16)
+17   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 17, 14)
+18   3    atomic read     relaxed  0000000000404074   0                   4   ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0                       ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0                   19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0x2                 16  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 470549367
+------------------------------------------------------------------------------------
+
+Program output from execution 2:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 1, r2 = 0
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 2:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 15, 14)
+16   3    atomic read     relaxed  0000000000404078   0                   5   ( 0, 10,  0, 16)
+17   3    atomic write    seq_cst  0000000000404070   0                       ( 0, 10,  0, 17)
+18   3    atomic read     relaxed  0000000000404074   0x1                 12  ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0x1                     ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0x1                 19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0                   17  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 3309642342
+------------------------------------------------------------------------------------
+
+Program output from execution 3:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 0, r2 = 0
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 3:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0                   5   ( 0, 10,  0, 15)
+16   3    atomic write    seq_cst  0000000000404070   0                       ( 0, 10,  0, 16)
+17   3    atomic read     relaxed  0000000000404074   0                   4   ( 0, 10,  0, 17)
+18   3    atomic write    seq_cst  000000000040406C   0                       ( 0, 10,  0, 18)
+19   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 19)
+20   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 20, 14)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 19)
+22   1    atomic read     seq_cst  000000000040406C   0                   18  ( 0, 22, 14, 19)
+23   1    atomic read     seq_cst  0000000000404070   0                   16  ( 0, 23, 14, 19)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 19)
+HASH 1346101270
+------------------------------------------------------------------------------------
+
+Program output from execution 4:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 1, r2 = 0
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 4:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0                   5   ( 0, 10,  0, 15)
+16   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 16, 14)
+17   3    atomic write    seq_cst  0000000000404070   0                       ( 0, 10,  0, 17)
+18   3    atomic read     relaxed  0000000000404074   0x1                 12  ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0x1                     ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0x1                 19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0                   17  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 3712296830
+------------------------------------------------------------------------------------
+
+Program output from execution 5:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 0, r2 = 0
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 5:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0                   5   ( 0, 10,  0, 15)
+16   3    atomic write    seq_cst  0000000000404070   0                       ( 0, 10,  0, 16)
+17   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 17, 14)
+18   3    atomic read     relaxed  0000000000404074   0                   4   ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0                       ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0                   19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0                   16  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 1175192383
+------------------------------------------------------------------------------------
+
+Program output from execution 6:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 1, r2 = 2
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 6:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0x2                 13  ( 0, 10,  0, 15)
+16   3    atomic write    seq_cst  0000000000404070   0x2                     ( 0, 10,  0, 16)
+17   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 17, 14)
+18   3    atomic read     relaxed  0000000000404074   0x1                 12  ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0x1                     ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0x1                 19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0x2                 16  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 472420735
+------------------------------------------------------------------------------------
+
+Program output from execution 7:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 0, r2 = 0
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 7:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0                   5   ( 0, 10,  0, 15)
+16   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 16, 14)
+17   3    atomic write    seq_cst  0000000000404070   0                       ( 0, 10,  0, 17)
+18   3    atomic read     relaxed  0000000000404074   0                   4   ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0                       ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0                   19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0                   17  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 3714168182
+------------------------------------------------------------------------------------
+
+Program output from execution 8:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 0, r2 = 2
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 8:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0x2                 13  ( 0, 10,  0, 15)
+16   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 16, 14)
+17   3    atomic write    seq_cst  0000000000404070   0x2                     ( 0, 10,  0, 17)
+18   3    atomic read     relaxed  0000000000404074   0                   4   ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0                       ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0                   19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0x2                 17  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 2271327550
+------------------------------------------------------------------------------------
+
+Program output from execution 9:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 0, r2 = 0
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 9:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 15, 14)
+16   3    atomic read     relaxed  0000000000404078   0                   5   ( 0, 10,  0, 16)
+17   3    atomic write    seq_cst  0000000000404070   0                       ( 0, 10,  0, 17)
+18   3    atomic read     relaxed  0000000000404074   0                   4   ( 0, 10,  0, 18)
+19   3    atomic write    seq_cst  000000000040406C   0                       ( 0, 10,  0, 19)
+20   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 20)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 20)
+22   1    atomic read     seq_cst  000000000040406C   0                   19  ( 0, 22, 14, 20)
+23   1    atomic read     seq_cst  0000000000404070   0                   17  ( 0, 23, 14, 20)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 20)
+HASH 3311513710
+------------------------------------------------------------------------------------
+
+Program output from execution 10:
+---- BEGIN PROGRAM OUTPUT ----
+r1 = 1, r2 = 2
+Main thread is finishing
+---- END PROGRAM OUTPUT   ----
+
+Execution trace 10:
+------------------------------------------------------------------------------------
+#    t    Action type     MO       Location         Value               Rf  CV
+------------------------------------------------------------------------------------
+1    1    thread start    seq_cst  00007F3D789E1110   0xdeadbeef              ( 0,  1)
+2    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  2)
+3    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  3)
+4    1    atomic write    seq_cst  0000000000404074   0                       ( 0,  4)
+5    1    atomic write    seq_cst  0000000000404078   0                       ( 0,  5)
+6    1    atomic write    seq_cst  000000000040406C   0                       ( 0,  6)
+7    1    atomic write    seq_cst  0000000000404070   0                       ( 0,  7)
+8    1    thread create   seq_cst  00007FFC6C31D210   0x7ffc6c31d190          ( 0,  8)
+9    2    thread start    seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8,  9)
+10   1    thread create   seq_cst  00007FFC6C31D208   0x7ffc6c31d190          ( 0, 10)
+11   3    thread start    seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 11)
+12   2    atomic write    relaxed  0000000000404074   0x1                     ( 0,  8, 12)
+13   2    atomic write    relaxed  0000000000404078   0x2                     ( 0,  8, 13)
+14   2    thread finish   seq_cst  00007F3D7A165F28   0xdeadbeef              ( 0,  8, 14)
+15   3    atomic read     relaxed  0000000000404078   0x2                 13  ( 0, 10,  0, 15)
+16   3    atomic write    seq_cst  0000000000404070   0x2                     ( 0, 10,  0, 16)
+17   3    atomic read     relaxed  0000000000404074   0x1                 12  ( 0, 10,  0, 17)
+18   3    atomic write    seq_cst  000000000040406C   0x1                     ( 0, 10,  0, 18)
+19   3    thread finish   seq_cst  00007F3D7A3674D0   0xdeadbeef              ( 0, 10,  0, 19)
+20   1    thread join     seq_cst  00007F3D7A165F28   0x2                     ( 0, 20, 14)
+21   1    thread join     seq_cst  00007F3D7A3674D0   0x3                     ( 0, 21, 14, 19)
+22   1    atomic read     seq_cst  000000000040406C   0x1                 18  ( 0, 22, 14, 19)
+23   1    atomic read     seq_cst  0000000000404070   0x2                 16  ( 0, 23, 14, 19)
+24   1    thread finish   seq_cst  00007F3D789E1110   0xdeadbeef              ( 0, 24, 14, 19)
+HASH 188473374
+------------------------------------------------------------------------------------
+
+******* Model-checking complete: *******
+Number of complete, bug-free executions: 10
+Number of buggy executions: 0
+Total executions: 10

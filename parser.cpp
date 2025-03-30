@@ -19,6 +19,22 @@ struct TraceEntry
     string value;
     string rf;
     string cv;
+
+    string toString() const
+    {
+        stringstream ss;
+        ss << "TraceEntry { "
+           << "id: " << id
+           << ", threadId: " << threadId
+           << ", actionType: " << actionType
+           << ", memoryOrder: " << memoryOrder
+           << ", location: " << location
+           << ", value: " << value
+           << ", rf: " << rf
+           << ", cv: " << cv
+           << " }";
+        return ss.str();
+    }
 };
 
 struct Execution
@@ -27,6 +43,28 @@ struct Execution
     vector<string> programOutput;
     vector<TraceEntry> executionTrace;
     unsigned int hash;
+
+    string toString() const
+    {
+        stringstream ss;
+        ss << "Execution { "
+           << "executionNumber: " << executionNumber
+           << ", hash: " << hash
+           << ", programOutput: [";
+        for (const auto &line : programOutput)
+        {
+            ss << "\"" << line << "\", ";
+        }
+        if (!programOutput.empty())
+            ss.seekp(-2, ss.cur); // Remove trailing comma and space
+        ss << "], executionTrace: [";
+        for (const auto &entry : executionTrace)
+        {
+            ss << "\n  " << entry.toString();
+        }
+        ss << "\n] }";
+        return ss.str();
+    }
 };
 
 vector<string> SplitLines(const string &input)
@@ -63,7 +101,8 @@ vector<Execution> ParseLog(const string &input)
 
     // regex traceRegex(R"(^\s*(\d+)\s+(\d+)\s+([\w\s]+)\s+([\w_]+)\s+([0-9A-Fa-fx]+)\s+([0-9A-Fa-fx]+)\s+([\d\s]*)\s+\(([\d,\s]*)\)$)");
 
-    regex traceRegex("^\\s*(\\d+)\\s+(\\d+)\\s+([\\w\\s]+)\\s+([\\w_]+)\\s+([0-9A-Fa-fx]+)\\s+([0-9A-Fa-fx]+)\\s+([\\d\\s]*)\\s+\\(([\\d,\\s]*)\\)$");
+    regex traceRegex("^\\s*(\\d+)\\s+(\\d+)\\s+([a-zA-Z\\s]+?)\\s+([\\w_]+)\\s+([0-9A-Fa-fx]+)\\s+([0-9A-Fa-fx]+)\\s+([\\d\\s]*)\\s+\\(([\\d,\\s]*)\\)$");
+
     for (const auto &line : lines)
     {
         if (line.find("Program output from execution") == 0)
@@ -99,6 +138,7 @@ vector<Execution> ParseLog(const string &input)
         else if (readingTrace && currentExecution != NULL)
         {
             smatch match;
+  
             if (regex_match(line, match, traceRegex))
             {
                 TraceEntry entry;
@@ -164,6 +204,7 @@ bool hasCycle(const std::unordered_map<int, std::vector<int>>& graph, int node, 
 }
 
 bool isSequentiallyConsistent(const Execution& exec) {
+
     // Filter relevant actions
     std::vector<TraceEntry> filtered;
     for (const auto& entry : exec.executionTrace) {
@@ -172,10 +213,10 @@ bool isSequentiallyConsistent(const Execution& exec) {
     }
 
     // Build edges
-    std::unordered_map<int, std::vector<int> > graph;
-
+    std::unordered_map<int, std::vector<int>> graph;
+    
     // 1. Program Order (po)
-    std::unordered_map<int, std::vector<TraceEntry> > threadActions;
+    std::unordered_map<int, std::vector<TraceEntry>> threadActions;
     for (const auto& entry : filtered)
         threadActions[entry.threadId].push_back(entry);
 
@@ -201,7 +242,7 @@ bool isSequentiallyConsistent(const Execution& exec) {
     }
 
     // 3. Modification Order (mo)
-    std::unordered_map<std::string, std::vector<TraceEntry> > locationWrites;
+    std::unordered_map<std::string, std::vector<TraceEntry>> locationWrites;
     for (const auto& entry : filtered) {
         if (entry.actionType == "atomic write")
             locationWrites[entry.location].push_back(entry);
@@ -235,6 +276,14 @@ bool isSequentiallyConsistent(const Execution& exec) {
         }
     }
 
+    // Print all edges in the graph
+    // cout << "Edges in the graph:" << endl;
+    // for (const auto& [from, toList] : graph) {
+    //     for (int to : toList) {
+    //         cout << "Edge: " << from << " -> " << to << endl;
+    //     }
+    // }
+
     // Check for cycles
     std::set<int> visited, recStack;
     for (const auto& [node, _] : graph) {
@@ -248,7 +297,14 @@ int main()
 {
     string input = ReadMultiLineInput();
     vector<Execution> executions = ParseLog(input);
-    cout << isSequentiallyConsistent(executions[1])<<endl;
-    cout << "Parsed " << executions.size() << endl;
+    int i = 1;
+    for (const auto &execution : executions)
+    {
+        bool isConsistent = isSequentiallyConsistent(execution);
+        cout << "Execution trace " << i << " is "
+             << (isConsistent ? "Sequentially Consistent" : "Not Sequentially Consistent") << endl;
+        i++;
+    }
+    cout << "Parsed " << executions.size() << " executions." << endl;
     return 0;
 }
