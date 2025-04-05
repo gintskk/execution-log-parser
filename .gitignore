@@ -30,6 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Misc
 /.vs
 /obj
 /bin
+.DS_Store
+/.idea
+/parser.dSYM
