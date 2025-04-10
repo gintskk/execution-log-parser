@@ -1,0 +1,59 @@
+Start testing: Apr 11 01:35 CEST
+----------------------------------------------------------
+1/2 Testing: test_execution_trace_parcing
+1/2 Test: test_execution_trace_parcing
+Command: "/home/jk/execution-log-parser/test_execution_trace_parcing"
+Directory: /home/jk/execution-log-parser
+"test_execution_trace_parcing" start time: Apr 11 01:35 CEST
+Output:
+----------------------------------------------------------
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from ParseLogFunctionalTest
+[ RUN      ] ParseLogFunctionalTest.ParseLogFromFile
+pwd:"/home/jk/execution-log-parser"
+[       OK ] ParseLogFunctionalTest.ParseLogFromFile (6 ms)
+[----------] 1 test from ParseLogFunctionalTest (6 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (7 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.01 sec
+----------------------------------------------------------
+Test Passed.
+"test_execution_trace_parcing" end time: Apr 11 01:35 CEST
+"test_execution_trace_parcing" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/2 Testing: test_sequential_consistency
+2/2 Test: test_sequential_consistency
+Command: "/home/jk/execution-log-parser/test_sequential_consistency"
+Directory: /home/jk/execution-log-parser
+"test_sequential_consistency" start time: Apr 11 01:35 CEST
+Output:
+----------------------------------------------------------
+[==========] Running 1 test from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 1 test from SequentialConsistencyTest
+[ RUN      ] SequentialConsistencyTest.test_seq_consistent
+pwd:"/home/jk/execution-log-parser"
+pwd:"/home/jk/execution-log-parser"
+pwd:"/home/jk/execution-log-parser"
+pwd:"/home/jk/execution-log-parser"
+pwd:"/home/jk/execution-log-parser"
+[       OK ] SequentialConsistencyTest.test_seq_consistent (37 ms)
+[----------] 1 test from SequentialConsistencyTest (37 ms total)
+
+[----------] Global test environment tear-down
+[==========] 1 test from 1 test suite ran. (37 ms total)
+[  PASSED  ] 1 test.
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"test_sequential_consistency" end time: Apr 11 01:35 CEST
+"test_sequential_consistency" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Apr 11 01:35 CEST

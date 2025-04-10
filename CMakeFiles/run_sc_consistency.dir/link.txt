@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/run_sc_consistency.dir/parser.cpp.o CMakeFiles/run_sc_consistency.dir/graph_checker.cpp.o CMakeFiles/run_sc_consistency.dir/tests/test_seq_consistent.cpp.o -o run_sc_consistency  /usr/lib/x86_64-linux-gnu/libgtest.a -lpthread 

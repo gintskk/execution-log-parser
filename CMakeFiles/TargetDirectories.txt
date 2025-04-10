@@ -1,0 +1,5 @@
+/home/jk/execution-log-parser/CMakeFiles/test_execution_trace_parcing.dir
+/home/jk/execution-log-parser/CMakeFiles/test_sequential_consistency.dir
+/home/jk/execution-log-parser/CMakeFiles/test.dir
+/home/jk/execution-log-parser/CMakeFiles/edit_cache.dir
+/home/jk/execution-log-parser/CMakeFiles/rebuild_cache.dir

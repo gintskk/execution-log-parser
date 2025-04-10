@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/test_execution_trace_parcing.dir/parser.cpp.o CMakeFiles/test_execution_trace_parcing.dir/tests/test_execution_trace_parcing.cpp.o -o test_execution_trace_parcing  /usr/lib/x86_64-linux-gnu/libgtest.a -lpthread 
