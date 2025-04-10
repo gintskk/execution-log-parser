@@ -31,6 +31,11 @@ int main() {
     thrd_join(t2);
 
     printf("Receiver read message: %d\n", received);
+    if (received == 42) {
+        printf("Message received correctly.\n");
+    } else {
+        printf("Message not received correctly.\n");
+    }
     return 0;
 }
 
