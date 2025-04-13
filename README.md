@@ -18,3 +18,5 @@ The second one ***test_sequential_consistency*** checks whether each of the trac
 
 Note: If you put an execution trace that violates sequential consistency for one of its exectuions inside ***sc_traces*** or one that doesn't violate sequential consistency for one of its executions 
 inside ***sc_violating_traces*** the second test ***run_sc_consistency*** will fail, so be sure to check this before adding the trace in one of the directory. 
+
+This repo can be cloned inside c11 tester and the output of a trace can be piped directly into the ./sc_check.
