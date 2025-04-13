@@ -38,3 +38,5 @@
 .DS_Store
 /.idea
 /parser.dSYM
+output.txt
+output_74.8MB.txt
