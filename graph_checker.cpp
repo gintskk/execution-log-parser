@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <fstream>
 #include "parser.h"
+#include <chrono>
 
 
 // New utility function to generate DOT file for graph visualization
@@ -80,72 +81,47 @@ bool saveDotFile(const std::string &dotContent, int executionNum)
 }
 
 // Modified cycle detection to return the cycle path
-std::vector<int> findCycle(const std::unordered_map<int, std::vector<int>> &graph)
-{
+std::vector<int> findCycle(const std::unordered_map<int, std::vector<int>> &graph) {
     std::set<int> visited;
-    std::set<int> recStack;
     std::unordered_map<int, int> parent;
 
-    std::function<bool(int)> dfs = [&](int node) -> bool
-    {
-        visited.insert(node);
-        recStack.insert(node);
+    for (const auto &[start, _] : graph) {
+        if (visited.count(start)) continue;
 
-        auto it = graph.find(node);
-        if (it != graph.end())
-        {
-            for (int neighbor : it->second)
-            {
-                if (visited.find(neighbor) == visited.end())
-                {
-                    parent[neighbor] = node;
-                    if (dfs(neighbor))
-                        return true;
-                }
-                else if (recStack.find(neighbor) != recStack.end())
-                {
-                    // Cycle found
-                    parent[neighbor] = node;
-                    return true;
-                }
+        std::unordered_map<int, bool> inStack;
+        std::stack<int> stk;
+        stk.push(start);
+        parent[start] = -1;
+
+        while (!stk.empty()) {
+            int node = stk.top();
+
+            if (!visited.count(node)) {
+                visited.insert(node);
+                inStack[node] = true;
+            } else {
+                stk.pop();
+                inStack[node] = false;
+                continue;
             }
-        }
-
-        recStack.erase(node);
-        return false;
-    };
-
-    for (const auto &[node, _] : graph)
-    {
-        if (visited.find(node) == visited.end())
-        {
-            parent.clear();
-            if (dfs(node))
-            {
-                // Reconstruct cycle path
-                std::vector<int> cycle;
-                // Find a node that is in the recursion stack
-                int cycleNode = -1;
-                for (auto &[n, p] : parent)
-                {
-                    if (recStack.find(n) != recStack.end())
-                    {
-                        cycleNode = n;
-                        break;
-                    }
-                }
-
-                if (cycleNode != -1)
-                {
-                    // Build the cycle
-                    int current = cycleNode;
-                    do
-                    {
+            auto it = graph.find(node);
+            if (it == graph.end()) {
+                stk.pop();
+                continue;
+            }
+            for (int neighbor : it ->second) {
+                if (!visited.count(neighbor)) {
+                    stk.push(neighbor);
+                    parent[neighbor] = node;
+                } else if (inStack[neighbor]) {
+                    std::vector<int> cycle;
+                    int current = node;
+                    while (current != neighbor && current != -1) {
                         cycle.push_back(current);
                         current = parent[current];
-                    } while (current != cycleNode);
-
-                    cycle.push_back(cycleNode); // Close the cycle
+                    }
+                    cycle.push_back(neighbor);
+                    cycle.push_back(node); 
                     std::reverse(cycle.begin(), cycle.end());
                     return cycle;
                 }
@@ -156,99 +132,169 @@ std::vector<int> findCycle(const std::unordered_map<int, std::vector<int>> &grap
     return {}; // No cycle found
 }
 
+
 bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
 {
-    // Filter relevant actions
-    std::vector<TraceEntry> filtered;
-    for (const auto &entry : exec.executionTrace)
-    {
-        if (entry.actionType == "atomic read" || entry.actionType == "atomic write" || entry.actionType == "fence")
-            filtered.push_back(entry);
-    }
+    auto start_time = std::chrono::high_resolution_clock::now();
 
+    // Separate vectors for atomic reads, writes, and rmws
+    std::vector<TraceEntry> atomicReads;
+    std::vector<TraceEntry> atomicWrites;
+    std::vector<TraceEntry> atomicRMWs;
+    std::unordered_map<int, std::vector<TraceEntry>> threadActions;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    // Categorize entries
+    for (const auto &entry : exec.executionTrace) {
+        threadActions[entry.threadId].push_back(entry);
+        if (entry.actionType == "atomic read") {
+            atomicReads.push_back(entry);
+        } else if (entry.actionType == "atomic write") {
+            atomicWrites.push_back(entry);
+        } else if (entry.actionType == "atomic rmw") {
+            atomicRMWs.push_back(entry);
+        }
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Time taken to categorize entries: " << elapsed.count() << " seconds" << std::endl;
     // Build edges
     std::unordered_map<int, std::vector<int>> graph;
+    graph.reserve(exec.executionTrace.size());
+    start = std::chrono::high_resolution_clock::now();
 
     // 1. Program Order (po)
-    std::unordered_map<int, std::vector<TraceEntry>> threadActions;
-    for (const auto &entry : filtered)
-        threadActions[entry.threadId].push_back(entry);
-
     for (auto &[tid, actions] : threadActions)
     {
-        sort(actions.begin(), actions.end(), [](const TraceEntry &a, const TraceEntry &b)
-             { return a.id < b.id; });
         for (size_t i = 1; i < actions.size(); ++i)
             graph[actions[i - 1].id].push_back(actions[i].id);
     }
-
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Time taken to build PO edges: " << elapsed.count() << " seconds" << std::endl;
+    
     // 2. Reads-From (rf)
-    std::unordered_map<int, TraceEntry> writes; // id -> write action
-    for (const auto &entry : filtered)
-    {
-        if (entry.actionType == "atomic write")
-            writes[entry.id] = entry;
+    start = std::chrono::high_resolution_clock::now();
+    std::unordered_map<int, TraceEntry> writes;
+    for (const auto &entry : atomicWrites) {
+        writes[entry.id] = entry;
+    }
+    for (const auto &entry : atomicRMWs) {
+        writes[entry.id] = entry;
     }
 
-    for (const auto &entry : filtered)
-    {
-        if (entry.actionType == "atomic read" && !entry.rf.empty())
-        {
-            int rfId = std::stoi(entry.rf);
-            if (writes.count(rfId))
-                graph[rfId].push_back(entry.id);
+    for (const auto &entry : atomicReads) {
+        if (!entry.rf.empty() && writes.count(std::stoi(entry.rf))) {
+            graph[std::stoi(entry.rf)].push_back(entry.id);
+        }
+    }
+    for (const auto &entry : atomicRMWs) {
+        if (!entry.rf.empty() && writes.count(std::stoi(entry.rf))) {
+            graph[std::stoi(entry.rf)].push_back(entry.id);
+        }
+    }
+    
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Time taken to build RF edges: " << elapsed.count() << " seconds" << std::endl;
+    start = std::chrono::high_resolution_clock::now();
+    
+    // Map to track the last write index for each memory location
+    std::unordered_map<int, size_t> lastWriteIndex; 
+    // intiliase this map with 0s
+    std::unordered_map<std::string, int> writeSize;
+    for (auto &entry : atomicWrites) {
+        writeSize[entry.location] = 0;
+    }
+    std::unordered_map<std::string, std::vector<TraceEntry>> locationWrites;
+    // 3. Modification Order (mo)
+    // Collect all writes (including RMWs) for each location
+
+    for (const auto &entry : atomicWrites) {
+        auto &writes = locationWrites[entry.location];
+        writes.push_back(entry);
+        writeSize[entry.location] += 1;
+        lastWriteIndex[entry.id] = writeSize[entry.location] - 1; // Update the last write index
+    }
+
+    for (auto &entry : atomicRMWs) {
+        auto &writes = locationWrites[entry.location];
+        auto it = std::lower_bound(writes.begin(), writes.end(), entry, [](const TraceEntry &a, const TraceEntry &b) {
+            return a.id < b.id;
+        });
+        size_t index = std::distance(writes.begin(), it);
+        writes.insert(it, entry);
+        lastWriteIndex[entry.id] = index; // Update the last write index
+    }
+
+
+    // Add edges for modification order
+    for (auto &[loc, writes] : locationWrites) {
+        for (size_t i = 1; i < writes.size(); ++i) {
+            graph[writes[i - 1].id].push_back(writes[i].id);
         }
     }
 
-    // 3. Modification Order (mo)
-    std::unordered_map<std::string, std::vector<TraceEntry>> locationWrites;
-    for (const auto &entry : filtered)
-    {
-        if (entry.actionType == "atomic write")
-            locationWrites[entry.location].push_back(entry);
-    }
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Time taken to build MO edges: " << elapsed.count() << " seconds" << std::endl;
 
-    for (auto &[loc, writes] : locationWrites)
-    {
-        sort(writes.begin(), writes.end(), [](const TraceEntry &a, const TraceEntry &b)
-             { return a.id < b.id; });
-        for (size_t i = 1; i < writes.size(); ++i)
-            graph[writes[i - 1].id].push_back(writes[i].id);
-    }
-
+    start = std::chrono::high_resolution_clock::now();
+  
     // 4. From-Reads (fr)
-    for (const auto &readEntry : filtered)
-    {
-        if (readEntry.actionType != "atomic read" || readEntry.rf.empty())
+    for (const auto &readEntry : atomicReads) {
+        if (readEntry.rf.empty())
             continue;
+
         int rfId = std::stoi(readEntry.rf);
         if (!writes.count(rfId))
             continue;
 
-        TraceEntry &writeEntry = writes[rfId];
-        std::string loc = writeEntry.location;
-        auto &moWrites = locationWrites[loc];
+        auto &moWrites = locationWrites[readEntry.location];
 
-        // Find all writes after 'writeEntry' in mo order
-        bool found = false;
-        for (size_t i = 0; i < moWrites.size(); ++i)
-        {
-            if (moWrites[i].id == rfId)
-            {
-                found = true;
-                for (size_t j = i + 1; j < moWrites.size(); ++j)
-                    graph[readEntry.id].push_back(moWrites[j].id);
+        // Use the last write index to directly start iterating from the position of rfId
+        size_t startIndex = lastWriteIndex[rfId];
+        for (size_t i = startIndex + 1; i < moWrites.size(); ++i) {
+            // Stop adding edges once we reach a write with an ID greater than the readEntry ID
+            if (moWrites[i].id > readEntry.id)
                 break;
-            }
+
+            graph[readEntry.id].push_back(moWrites[i].id);
         }
     }
+
+    for (const auto &rmwEntry : atomicRMWs) {
+        if (rmwEntry.rf.empty())
+            continue;
+
+        int rfId = std::stoi(rmwEntry.rf);
+        if (!writes.count(rfId))
+            continue;
+
+        auto &moWrites = locationWrites[rmwEntry.location];
+
+        size_t startIndex = lastWriteIndex[rfId];
+        for (size_t i = startIndex + 1; i < moWrites.size(); ++i) {
+            if (moWrites[i].id > rmwEntry.id)
+                break;
+
+            graph[rmwEntry.id].push_back(moWrites[i].id);
+        }
+    }
+
+    end = std::chrono::high_resolution_clock::now();
+    elapsed = end - start;
+    std::cout << "Time taken to build FR edges: " << elapsed.count() << " seconds" << std::endl;
+    auto end_time = std::chrono::high_resolution_clock::now();
+    elapsed = end_time - start_time;
+    std::cout << "Time taken to build graph: " << elapsed.count() << " seconds" << std::endl;
 
     // Find cycle if exists
     std::vector<int> cycle = findCycle(graph);
     bool hasCycle = !cycle.empty();
 
     // Generate DOT file content
-    dotOutput = generateDotFile(graph, cycle);
+    // dotOutput = generateDotFile(graph, cycle);
 
     return !hasCycle;
 }

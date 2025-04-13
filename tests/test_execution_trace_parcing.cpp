@@ -1,4 +1,3 @@
-
 #include <gtest/gtest.h>
 
 #include <fstream>
@@ -12,204 +11,105 @@
 #include "../parser.h" 
 using namespace std;
 
-// Execution trace 1a
-vector<TraceEntry>  trace1 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+// Execution trace 1
+vector<TraceEntry> trace1 = {
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2, 10)"},
-    {11, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 11)"},
-    {12, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0, 12)"},
-    {13, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 13)"},
-    {14, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 14, 11)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 11, 13)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 11, 13)"}
+    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2,  10)"},
+    {12, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0,  12)"}
 };
 
 // Execution trace 2
 vector<TraceEntry> trace2 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0, 10)"},
-    {11, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 11)"},
-    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2, 12)"},
-    {13, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 13)"},
-    {14, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 14, 13)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 13, 11)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 13, 11)"}
+    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0,  10)"},
+    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2,  12)"}
 };
 
 // Execution trace 3
 vector<TraceEntry> trace3 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2, 10)"},
-    {11, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 11)"},
-    {12, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0, 12)"},
-    {13, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 13)"},
-    {14, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 14, 11)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 11, 13)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 11, 13)"}
+    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2,  10)"},
+    {12, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0,  13)"},
+    {17, 7, "atomic rmw", "seq_cst", "0000000000611C00", "0x0", "717142", "( 0, 717332, 716953, 8945, 717136, 717313, 717301, 717385)"}
 };
 
 // Execution trace 4
 vector<TraceEntry> trace4 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2, 10)"},
-    {11, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 11)"},
-    {12, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 12, 11)"},
-    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0, 13)"},
-    {14, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 14)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 11, 14)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 11, 14)"}
+    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2,  10)"},
+    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0,  13)"}
 };
 
 // Execution trace 5
 vector<TraceEntry> trace5 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x2", "7", "( 0,  4,  0, 10)"},
-    {11, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 11)"},
-    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2, 12)"},
-    {13, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 13)"},
-    {14, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 14, 13)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 13, 11)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 13, 11)"}
+    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x2", "7", "( 0,  4,  0,  10)"},
+    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2,  12)"}
 };
 
 // Execution trace 6
 vector<TraceEntry> trace6 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2, 10)"},
-    {11, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 11)"},
-    {12, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 12, 11)"},
-    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x2", "7", "( 0,  4,  0, 13)"},
-    {14, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 14)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 11, 14)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 11, 14)"}
+    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2,  10)"},
+    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x2", "7", "( 0,  4,  0,  13)"}
 };
 
 // Execution trace 7
 vector<TraceEntry> trace7 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "0,  1"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x2", "7", "( 0,  4,  0, 10)"},
-    {11, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 11)"},
-    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2, 12)"},
-    {13, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 13)"},
-    {14, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 14, 13)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 13, 11)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 13, 11)"}
+    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x2", "7", "( 0,  4,  0,  10)"},
+    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x2", "9", "( 0,  2,  12)"}
 };
 
 // Execution trace 8
 vector<TraceEntry> trace8 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2, 10)"},
-    {11, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 11)"},
-    {12, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 12, 11)"},
-    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0, 13)"},
-    {14, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 14)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 11, 14)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 11, 14)"}
+    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2,  10)"},
+    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0,  13)"}
 };
 
 // Execution trace 9
 vector<TraceEntry> trace9 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0, 10)"},
-    {11, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 11)"},
-    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2, 12)"},
-    {13, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 13)"},
-    {14, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 14, 13)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 13, 11)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 13, 11)"}
+    {10, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0,  10)"},
+    {12, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2,  12)"}
 };
 
 // Execution trace 10
 vector<TraceEntry> trace10 = {
-    {1, 1, "thread start", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0,  1)"},
-    {2, 1, "thread create", "seq_cst", "00007FFEA5873F68", "0x7ffea5873ef0", "", "( 0,  2)"},
-    {3, 2, "thread start", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2,  3)"},
-    {4, 1, "thread create", "seq_cst", "00007FFEA5873F60", "0x7ffea5873ef0", "", "( 0,  4)"},
-    {5, 3, "thread start", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0,  5)"},
-    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,  6)"},
-    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,  7)"},
+    {6, 2, "atomic write", "relaxed", "000000000040406C", "0x1", "", "( 0,  2,   6)"},
+    {7, 2, "atomic write", "relaxed", "000000000040406C", "0x2", "", "( 0,  2,   7)"},
     {8, 3, "atomic write", "relaxed", "0000000000404070", "0x1", "", "( 0,  4,  0,  8)"},
     {9, 3, "atomic write", "relaxed", "0000000000404070", "0x2", "", "( 0,  4,  0,  9)"},
-    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2, 10)"},
-    {11, 2, "thread finish", "seq_cst", "00007F0904C71A98", "0xdeadbeef", "", "( 0,  2, 11)"},
-    {12, 1, "thread join", "seq_cst", "00007F0904C71A98", "0x2", "", "( 0, 12, 11)"},
-    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0, 13)"},
-    {14, 3, "thread finish", "seq_cst", "00007F0904E73040", "0xdeadbeef", "", "( 0,  4,  0, 14)"},
-    {15, 1, "thread join", "seq_cst", "00007F0904E73040", "0x3", "", "( 0, 15, 11, 14)"},
-    {16, 1, "thread finish", "seq_cst", "00007F09034F0110", "0xdeadbeef", "", "( 0, 16, 11, 14)"}
+    {10, 2, "atomic read", "relaxed", "0000000000404070", "0x1", "8", "( 0,  2,  10)"},
+    {13, 3, "atomic read", "relaxed", "000000000040406C", "0x1", "6", "( 0,  4,  0,  13)"}
 };
 
 class ParseLogFunctionalTest : public ::testing::Test {
@@ -250,7 +150,14 @@ TEST_F(ParseLogFunctionalTest, ParseLogFromFile) {
     ASSERT_FALSE(fileContent.empty()) << "File is empty or could not be read";
     
     vector<Execution> executions = ParseLog(fileContent);
-    
+    for (const auto& execution : executions) {
+        for (const auto& entry : execution.executionTrace) {
+            std::cout << "  Trace Entry ID: " << entry.id << ", Thread ID: " << entry.threadId
+                      << ", Action Type: " << entry.actionType << ", Memory Order: " << entry.memoryOrder
+                      << ", Location: " << entry.location << ", Value: " << entry.value
+                      << ", RF: " << entry.rf << std::endl;
+        }
+    }
     ASSERT_EQ(executions.size(), allTraces.size()) << "Number of executions does not match expected";
     
     for (size_t i = 0; i < executions.size(); ++i) {

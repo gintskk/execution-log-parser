@@ -8,16 +8,20 @@
 #include <algorithm>
 #include <fstream>
 #include "parser.h"
-
+#include <algorithm>
+#include <cctype>
 using namespace std;
+bool isNumeric(const string& str) {
+    return !str.empty() && all_of(str.begin(), str.end(), ::isdigit);
+}
 
 vector<string> SplitLines(const string &input)
 {
     vector<string> lines;
-    stringstream ss(input);
-    string line;
-    while (getline(ss, line))
-    {
+    std::istringstream ss(input);
+    std::string line;
+    while (std::getline(ss, line)) {
+        if (line.empty()) continue;
         if (!line.empty())
         {
             lines.push_back(line);
@@ -26,14 +30,7 @@ vector<string> SplitLines(const string &input)
     return lines;
 }
 
-string Trim(const string &s)
-{
-    size_t start = s.find_first_not_of(" \t");
-    if (start == string::npos)
-        return "";
-    size_t end = s.find_last_not_of(" \t");
-    return s.substr(start, end - start + 1);
-}
+
 
 vector<Execution> ParseLog(const string &input)
 {
@@ -42,62 +39,74 @@ vector<Execution> ParseLog(const string &input)
     Execution *currentExecution = NULL;
     bool readingProgramOutput = false;
     bool readingTrace = false;
-
-    // regex traceRegex(R"(^\s*(\d+)\s+(\d+)\s+([\w\s]+)\s+([\w_]+)\s+([0-9A-Fa-fx]+)\s+([0-9A-Fa-fx]+)\s+([\d\s]*)\s+\(([\d,\s]*)\)$)");
-
-    regex traceRegex("^\\s*(\\d+)\\s+(\\d+)\\s+([a-zA-Z\\s]+?)\\s+([\\w_]+)\\s+([0-9A-Fa-fx]+)\\s+([0-9A-Fa-fx]+)\\s+([\\d\\s]*)\\s+\\(([\\d,\\s]*)\\)$");
-
-    for (const auto &line : lines)
-    {
-        if (line.find("Program output from execution") == 0)
+    std::istringstream ss(input);
+    std::string line;
+    while (std::getline(ss, line)) {
+        if (line.empty()) continue;
+        if (!line.empty())
         {
-            executions.emplace_back();
-            currentExecution = &executions.back();
-            currentExecution->executionNumber = executions.size();
-            readingProgramOutput = true;
-            readingTrace = false;
-        }
-        else if (line.find("Execution trace") == 0)
-        {
-            readingProgramOutput = false;
-            readingTrace = true;
-        }
-        else if (line.find("---- END PROGRAM OUTPUT") == 0)
-        {
-            readingProgramOutput = false;
-        }
-        else if (line.find("HASH") == 0)
-        {
-            if (currentExecution != NULL)
-            {
-                istringstream iss(line);
-                string dummy;
-                iss >> dummy >> currentExecution->hash;
-            }
-        }
-        else if (readingProgramOutput && currentExecution != NULL)
-        {
-            currentExecution->programOutput.push_back(line);
-        }
-        else if (readingTrace && currentExecution != NULL)
-        {
-            smatch match;
-
-            if (regex_match(line, match, traceRegex))
-            {
+            if (line.rfind("Program output from execution", 0) == 0) {
+                executions.emplace_back();
+                currentExecution = &executions.back();
+                currentExecution->executionNumber = executions.size();
+                readingProgramOutput = true;
+                readingTrace = false;
+            } else if (line.rfind("Execution trace", 0) == 0) {
+                readingProgramOutput = false;
+                readingTrace = true;
+            } else if (line.rfind("---- END PROGRAM OUTPUT", 0) == 0) {
+                readingProgramOutput = false;
+            } else if (line.rfind("HASH", 0) == 0) {
+                if (currentExecution != NULL) {
+                    istringstream iss(line);
+                    string dummy;
+                    iss >> dummy >> currentExecution->hash;
+                }
+            } else if (readingProgramOutput && currentExecution != NULL) {
+                currentExecution->programOutput.push_back(line);
+            } else if (readingTrace && currentExecution != NULL) {
+                std::istringstream iss(line);
                 TraceEntry entry;
-                entry.id = stoi(match[1].str());
-                entry.threadId = stoi(match[2].str());
-                entry.actionType = Trim(match[3].str());
-                entry.memoryOrder = match[4].str();
-                entry.location = match[5].str();
-                entry.value = match[6].str();
-                entry.rf = Trim(match[7].str());
-                entry.cv = Trim(match[8].str());
+                //skip empty lines 
+                if (line.empty())
+                {
+                    continue;
+                }
+                // Parse columns
+                iss >> entry.id >> entry.threadId;
+    
+                // Read the action type (two words: "atomic read")
+                std::string actionPart1, actionPart2;
+                iss >> actionPart1 >> actionPart2;
+                entry.actionType = actionPart1 + " " + actionPart2;
+                if (entry.actionType.empty() || std::all_of(entry.actionType.begin(), entry.actionType.end(), 
+                [](unsigned char c) { return std::isspace(c); }))
+                {
+                    continue;
+                }
+                if (entry.actionType != "atomic read" && entry.actionType != "atomic write" && entry.actionType != "fence" &&   entry.actionType != "atomic rmw")
+                {
+                    continue;
+                }
+        
+                // Continue parsing the remaining columns
+                iss >> entry.memoryOrder >> entry.location >> entry.value;
+                 if (entry.actionType == "atomic rmw") {
+                    std::string extraField;
+                    iss >> extraField; // Skip the extra field (e.g., "()")
+                }
+                iss >> entry.rf;
+                
+                // Validate the RF field
+                if (!isNumeric(entry.rf)) {
+                    entry.rf = ""; // Set RF to an empty string if it's not numeric
+                }
                 currentExecution->executionTrace.push_back(entry);
-            }
+    
+        }
         }
     }
+ 
 
     return executions;
 }
