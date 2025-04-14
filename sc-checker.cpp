@@ -62,7 +62,7 @@ int main(){
         cout << "Execution trace " << i << " is "
              << (isConsistent ? "Sequentially Consistent" : "Not Sequentially Consistent") << endl;
 
-    //    saveDotFile(dotOutput, i);
+       saveDotFile(dotOutput, i);
         i++;
     }
 }

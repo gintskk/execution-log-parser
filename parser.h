@@ -37,7 +37,6 @@ struct TraceEntry
 struct Execution
 {
     int executionNumber;
-    std::vector<std::string> programOutput;
     std::vector<TraceEntry> executionTrace;
     unsigned int hash = 0;
 
@@ -46,20 +45,8 @@ struct Execution
         std::stringstream ss;
         ss << "Execution { "
            << "executionNumber: " << executionNumber
-           << ", hash: " << hash
-           << ", programOutput: [";
-        for (const auto &line : programOutput)
-        {
-            ss << "\"" << line << "\", ";
-        }
-        if (!programOutput.empty())
-            ss.seekp(-2, ss.cur); // remove trailing ", "
-        ss << "], executionTrace: [";
-        for (const auto &entry : executionTrace)
-        {
-            ss << "\n  " << entry.toString();
-        }
-        ss << "\n] }";
+           << ", hash: " << hash  << "}\n";
+           
         return ss.str();
     }
 };

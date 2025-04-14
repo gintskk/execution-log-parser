@@ -80,7 +80,6 @@ bool saveDotFile(const std::string &dotContent, int executionNum)
     return true;
 }
 
-// Modified cycle detection to return the cycle path
 std::vector<int> findCycle(const std::unordered_map<int, std::vector<int>> &graph) {
     std::set<int> visited;
     std::unordered_map<int, int> parent;
@@ -144,7 +143,7 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
     std::unordered_map<int, std::vector<TraceEntry>> threadActions;
 
     auto start = std::chrono::high_resolution_clock::now();
-    // Categorize entries
+        // Categorize entries
     for (const auto &entry : exec.executionTrace) {
         threadActions[entry.threadId].push_back(entry);
         if (entry.actionType == "atomic read") {
@@ -158,7 +157,7 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
     std::cout << "Time taken to categorize entries: " << elapsed.count() << " seconds" << std::endl;
-    // Build edges
+
     std::unordered_map<int, std::vector<int>> graph;
     graph.reserve(exec.executionTrace.size());
     start = std::chrono::high_resolution_clock::now();
@@ -199,16 +198,13 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
     std::cout << "Time taken to build RF edges: " << elapsed.count() << " seconds" << std::endl;
     start = std::chrono::high_resolution_clock::now();
     
-    // Map to track the last write index for each memory location
     std::unordered_map<int, size_t> lastWriteIndex; 
-    // intiliase this map with 0s
     std::unordered_map<std::string, int> writeSize;
     for (auto &entry : atomicWrites) {
         writeSize[entry.location] = 0;
     }
     std::unordered_map<std::string, std::vector<TraceEntry>> locationWrites;
     // 3. Modification Order (mo)
-    // Collect all writes (including RMWs) for each location
 
     for (const auto &entry : atomicWrites) {
         auto &writes = locationWrites[entry.location];
@@ -228,7 +224,6 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
     }
 
 
-    // Add edges for modification order
     for (auto &[loc, writes] : locationWrites) {
         for (size_t i = 1; i < writes.size(); ++i) {
             graph[writes[i - 1].id].push_back(writes[i].id);
@@ -252,10 +247,8 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
 
         auto &moWrites = locationWrites[readEntry.location];
 
-        // Use the last write index to directly start iterating from the position of rfId
         size_t startIndex = lastWriteIndex[rfId];
         for (size_t i = startIndex + 1; i < moWrites.size(); ++i) {
-            // Stop adding edges once we reach a write with an ID greater than the readEntry ID
             if (moWrites[i].id > readEntry.id)
                 break;
 
@@ -294,7 +287,7 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
     bool hasCycle = !cycle.empty();
 
     // Generate DOT file content
-    // dotOutput = generateDotFile(graph, cycle);
+    dotOutput = generateDotFile(graph, cycle);
 
     return !hasCycle;
 }

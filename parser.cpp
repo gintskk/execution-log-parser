@@ -62,20 +62,15 @@ vector<Execution> ParseLog(const string &input)
                     string dummy;
                     iss >> dummy >> currentExecution->hash;
                 }
-            } else if (readingProgramOutput && currentExecution != NULL) {
-                currentExecution->programOutput.push_back(line);
-            } else if (readingTrace && currentExecution != NULL) {
+            }  else if (readingTrace && currentExecution != NULL) {
                 std::istringstream iss(line);
                 TraceEntry entry;
-                //skip empty lines 
                 if (line.empty())
                 {
                     continue;
                 }
-                // Parse columns
                 iss >> entry.id >> entry.threadId;
     
-                // Read the action type (two words: "atomic read")
                 std::string actionPart1, actionPart2;
                 iss >> actionPart1 >> actionPart2;
                 entry.actionType = actionPart1 + " " + actionPart2;
@@ -89,17 +84,15 @@ vector<Execution> ParseLog(const string &input)
                     continue;
                 }
         
-                // Continue parsing the remaining columns
                 iss >> entry.memoryOrder >> entry.location >> entry.value;
                  if (entry.actionType == "atomic rmw") {
                     std::string extraField;
-                    iss >> extraField; // Skip the extra field (e.g., "()")
+                    iss >> extraField; 
                 }
                 iss >> entry.rf;
                 
-                // Validate the RF field
                 if (!isNumeric(entry.rf)) {
-                    entry.rf = ""; // Set RF to an empty string if it's not numeric
+                    entry.rf = ""; 
                 }
                 currentExecution->executionTrace.push_back(entry);
     
