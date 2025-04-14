@@ -76,7 +76,7 @@ bool saveDotFile(const std::string &dotContent, int executionNum)
 
     outFile << dotContent;
     outFile.close();
-    std::cout << "Graph visualization saved to " << filename << std::endl;
+    // std:cout  << " visualization saved to " << filename << std::endl;
     return true;
 }
 
@@ -170,7 +170,7 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
     }
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
-    std::cout << "Time taken to build PO edges: " << elapsed.count() << " seconds" << std::endl;
+    // std:cout  << "Time taken to build PO edges: " << elapsed.count() << " seconds" << std::endl;
     
     // 2. Reads-From (rf)
     start = std::chrono::high_resolution_clock::now();
@@ -195,7 +195,7 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
     
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
-    std::cout << "Time taken to build RF edges: " << elapsed.count() << " seconds" << std::endl;
+    // std:cout  << "Time taken to build RF edges: " << elapsed.count() << " seconds" << std::endl;
     start = std::chrono::high_resolution_clock::now();
     
     std::unordered_map<int, size_t> lastWriteIndex; 
@@ -232,7 +232,7 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
 
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
-    std::cout << "Time taken to build MO edges: " << elapsed.count() << " seconds" << std::endl;
+    // std:cout  << "Time taken to build MO edges: " << elapsed.count() << " seconds" << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
   
@@ -277,10 +277,10 @@ bool isSequentiallyConsistent(const Execution &exec, std::string &dotOutput)
 
     end = std::chrono::high_resolution_clock::now();
     elapsed = end - start;
-    std::cout << "Time taken to build FR edges: " << elapsed.count() << " seconds" << std::endl;
+    // std:cout  << "Time taken to build FR edges: " << elapsed.count() << " seconds" << std::endl;
     auto end_time = std::chrono::high_resolution_clock::now();
     elapsed = end_time - start_time;
-    std::cout << "Time taken to build graph: " << elapsed.count() << " seconds" << std::endl;
+    // std:cout  << "Time taken to build graph: " << elapsed.count() << " seconds" << std::endl;
 
     // Find cycle if exists
     std::vector<int> cycle = findCycle(graph);

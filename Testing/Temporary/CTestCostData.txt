@@ -1,5 +1,5 @@
 run_parse_execution 9 0.00348127
 run_sc_consistency 4 0.0121107
-test_execution_trace_parcing 37 9.95873e-05
-test_sequential_consistency 41 0.000168018
+test_execution_trace_parcing 41 0.000143972
+test_sequential_consistency 45 0.000223819
 ---
