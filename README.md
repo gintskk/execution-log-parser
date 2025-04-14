@@ -32,6 +32,8 @@ Before running any of the bench run these two command to configure C11tester to 
 ```bash 
 export C11TESTER='--verbose=2'
 export LD_LIBRARY_PATH="/home/c11tester/c11tester:../src"
+sudo apt install pv # to measure piped out size
+sudo apt install time # execution time and memeory usage of ./sc_check 
 ```
 
 1. Iris
@@ -78,5 +80,10 @@ run the test again.
 
 
 For each of the tests additionally 
- /usr/bin/time can be added in front on the /sc_check executable to test get the memeory taken data.
+ /usr/bin/time -v can be added in front on the /sc_check executable to test get the memeory taken data.
+like 
+```bash
+ /usr/bin/time -v /home/c11tester/execution-log-parser/sc_check
+```
+or feel free to use any other way to measure memory usage and time.
 
